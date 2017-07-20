@@ -2,7 +2,6 @@
 
 import csv
 import numpy as np
-import scipy
 
 W = list()
 vW = list()  # W为对应的权值，vW用于更新权值
@@ -59,17 +58,19 @@ def str_to_float(raw):
 # read data from csv file
 def input_data(path, ini=False):
     data = list()
+    labels = list()
     c = open(path, 'r')
     for line in csv.reader(c):
         f = str_to_float(line[:-1])
         if f:
+            labels.append(int(line[-1]))
             if ini:
                 max = np.max(f)
                 min = np.min(f)
                 for i in range(len(f)):
                     f[i] = (f[i] - min)/(max - min)
             data.append(f)
-    return data
+    return data, labels
 
 
 def dbn_setup(ins):
@@ -79,8 +80,10 @@ def dbn_setup(ins):
     n = len(size)  # number of layers in DBN
 
     for i in range(n-1):
-        W.append(np.zeros([size[i+1], size[i]]))
-        vW.append(np.zeros([size[i+1], size[i]]))
+        # W.append(np.zeros([size[i+1], size[i]]))
+        # vW.append(np.zeros([size[i+1], size[i]]))
+        W.append(np.random.normal(size=[size[i+1], size[i]]))
+        vW.append(W[-1])
         b.append(np.zeros([size[i], 1]))
         vb.append(np.zeros([size[i], 1]))
         c.append(np.zeros([size[i+1], 1]))
@@ -103,8 +106,8 @@ def dbn_train(data):
 
 # 上一层的RBM的输出作为下一层RBM的输入
 def rbm_up(data, layer):
-    # data = cal_pro(np.add(np.dot(data, np.transpose(W[layer])), np.transpose(c[layer])))
-    data = gibbs(cal_pro(np.add(np.dot(data, np.transpose(W[layer])), np.transpose(c[layer]))))
+    data = cal_pro(np.add(np.dot(data, np.transpose(W[layer])), np.transpose(c[layer])))
+    # data = gibbs(cal_pro(np.add(np.dot(data, np.transpose(W[layer])), np.transpose(c[layer]))))
     return data
 
 
@@ -130,10 +133,14 @@ def rbm_train(data, layer):
             v1 = batch
             # print("c: ", np.shape(c[layer]), np.shape(W[layer]), np.shape(v1))
             h1_mean = cal_pro(np.add(np.dot(v1, np.transpose(W[layer])), np.transpose(c[layer])))
-
+            # print(np.add(np.dot(v1, np.transpose(W[layer])), np.transpose(c[layer])))
+            # print("h1_mean: ", h1_mean)
             h1_sample = gibbs(h1_mean)
+            # print("h1_sample: ", h1_sample)
             v2_mean = cal_pro(np.add(np.dot(h1_sample, W[layer]), np.transpose(b[layer])))
+            # print("v2_mean: ", v2_mean)
             v2_sample = gibbs(v2_mean)
+            # print("v2_sample: ", v2_sample)
             h2_mean = cal_pro(np.add(np.dot(v2_sample, np.transpose(W[layer])), np.transpose(c[layer])))
             h2_sample = gibbs(h2_mean)
 
@@ -160,10 +167,32 @@ def rbm_train(data, layer):
             print("epoch: ", i+1, " batch: ", j+1, " err: ", err)
 
 
+def ext_fea(data, lables):
+    n = len(hidden_size)
+    num = np.shape(data)[0]
+    for i in range(n):
+        store = data
+        data = list()
+        with open("F:\\PycharmProjects\\DBN-python\\Data\\HTRU_1_Combined_Lyon_Thornton_Features(30)_layer_%d.csv" %
+            (i + 1), "w", newline='') as file:
+            writer = csv.writer(file)
+            for j in range(num):
+                v = store[j]
+                h_mean = cal_pro(np.add(np.dot(v, np.transpose(W[i])), np.transpose(c[i])))
+                h_sample = gibbs(h_mean)
+                data.append(h_sample)
+                result = h_sample.tolist()[0]
+                result.append(lables[j])
+                writer.writerow(result)
+
+
 if __name__ == "__main__":
-    path = "D:\\Arm\\PyCharmProject\\Data\\HTRU_1_Combined_Lyon_Thornton_Features (30).csv"
-    data = input_data(path, True)
+    path = "F:\\PycharmProjects\\DBN-python\\Data\\HTRU_1_Combined_Lyon_Thornton_Features (30)_10_Bin_Discretized.csv"
+    data, labels = input_data(path, True)
+    print("data shape: ", np.shape(data))
+    print("lable shape: ", np.shape(labels))
     x, y = np.shape(data)
     dbn_setup(ins=y)
-    dbn_train(data[:])
+    dbn_train(data[:20000])
+    ext_fea(data, labels)
     print(W[0][0])
