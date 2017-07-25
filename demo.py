@@ -34,11 +34,26 @@ print(store)
 store = b
 print(store)
 print(b[1:np.shape(b)[0]])
-path = "F:\\PycharmProjects\\DBN-python\\Data\\HTRU_1_Combined_Lyon_Thornton_Features (30)_10_Bin_Discretized.csv"
-for i in range(3):
-    with open("HTUR_1_layer_%d.csv"%(i), "w", newline='') as file:
-        writer = csv.writer(file)
-        for j in range(len(e)):
-            print(e[j])
-            print(type(e[j]))
-            writer.writerow(e[j])
+# path = "F:\\PycharmProjects\\DBN-python\\Data\\HTRU_1_Combined_Lyon_Thornton_Features (30)_10_Bin_Discretized.csv"
+# for i in range(3):
+#     with open("HTUR_1_layer_%d.csv"%(i), "w", newline='') as file:
+#         writer = csv.writer(file)
+#         for j in range(len(e)):
+#             print(e[j])
+#             print(type(e[j]))
+#             writer.writerow(e[j])
+
+import pickle
+data = [1, 2, 3, 4, 5, 6]
+data1 = {'a': 1, 'b': 2}
+
+file = open("data.pkl", "rb")
+
+# pickle.dump(data, file, -1)
+# pickle.dump(data1, file, -1)
+
+# data = pickle.load(file)
+for data in pickle.load(file):
+    print("data: ", data)
+
+
