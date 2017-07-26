@@ -15,8 +15,8 @@ def read_attrs(neg, pos):
     :param pos: positive refers to the path of pulsars.pkl
     :return: the data used to tran DBN
     """
-    rfi_file = open('/home/hezhaoying/SKA/Data/HTRU_1/save_attrs/RFI.pkl', 'rb')
-    pulsar_file = open('/home/hezhaoying/SKA/Data/HTRU_1/save_attrs/pulsars.pkl', 'rb')
+    rfi_file = open(neg, 'rb')
+    pulsar_file = open(pos, 'rb')
     rfi = pickle.load(rfi_file)
     pulsar = pickle.load(pulsar_file)
 
@@ -26,4 +26,6 @@ def read_attrs(neg, pos):
     print("pulsar: ", len(pulsar))
 
 if __name__ == "__main__":
+    neg = '/home/hezhaoying/SKA/Data/HTRU_1/save_attrs/RFI.pkl'
+    pos = '/home/hezhaoying/SKA/Data/HTRU_1/save_attrs/pulsars.pkl'
     read_attrs()
