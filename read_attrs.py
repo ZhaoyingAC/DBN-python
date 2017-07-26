@@ -21,7 +21,9 @@ def read_attrs(neg, pos):
     pulsar = pickle.load(pulsar_file)
 
     print("rfi: ", len(rfi))
+    print(type(rfi))
+    print()
     print("pulsar: ", len(pulsar))
 
-if __name__=="__main__":
+if __name__ == "__main__":
     read_attrs()
