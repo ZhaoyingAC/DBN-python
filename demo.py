@@ -43,17 +43,20 @@ print(b[1:np.shape(b)[0]])
 #             print(type(e[j]))
 #             writer.writerow(e[j])
 
-import pickle
-data = [1, 2, 3, 4, 5, 6]
-data1 = {'a': 1, 'b': 2}
+# import pickle
+# data = [1, 2, 3, 4, 5, 6]
+# data1 = {'a': 1, 'b': 2}
+#
+# file = open("data.pkl", "rb")
+#
+# # pickle.dump(data, file, -1)
+# # pickle.dump(data1, file, -1)
+#
+# # data = pickle.load(file)
+# for data in pickle.load(file):
+#     print("data: ", data)
 
-file = open("data.pkl", "rb")
-
-# pickle.dump(data, file, -1)
-# pickle.dump(data1, file, -1)
-
-# data = pickle.load(file)
-for data in pickle.load(file):
-    print("data: ", data)
-
+l = [1, 2, 3]
+l.extend([0]*10)
+print(l)
 
