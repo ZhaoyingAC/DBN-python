@@ -56,7 +56,5 @@ print(b[1:np.shape(b)[0]])
 # for data in pickle.load(file):
 #     print("data: ", data)
 
-l = [1, 2, 3]
-l.extend([0]*10)
-print(l)
+print(list(range(10)))
 

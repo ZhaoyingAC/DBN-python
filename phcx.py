@@ -246,6 +246,15 @@ if __name__ == '__main__':
                 attrs.append(0)
                 ra = cand.rajd                      # a float
                 dec = cand.decjd                    # a float
+                attrs.append(ra)
+                attrs.append(dec)
+                for i in range(len(attrs)):
+                    name = str(type(attrs[i]))
+                    if 'float' in name or 'int' in name:
+                        continue
+                    else:
+                        print(i, " not a number")
+                break
                 num = np.shape(attrs)[0]
                 if(num > max):
                     max = num

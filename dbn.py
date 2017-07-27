@@ -2,6 +2,7 @@
 
 import csv
 import numpy as np
+import pickle
 
 W = list()
 vW = list()  # W为对应的权值，vW用于更新权值
@@ -12,7 +13,7 @@ vb = list()  # b对应显层的偏置，vb用于更新偏置
 c = list()
 vc = list()  # c对应隐层的偏置，vc用于更新偏置
 
-hidden_size = [100, 100]
+hidden_size = [3000, 2000, 1000]
 batch_size = 1000
 num_epochs = 2
 n_ins = 0
@@ -53,6 +54,61 @@ def str_to_float(raw):
         else:
             return
     return f
+
+
+def read_attrs(neg, pos):
+    """
+    Author: Armstrong He
+    Time: 17/7/26
+    Read attributes from specified objects and convert to uniform size
+
+    :param neg: negative refers to the path of RFI.pkl
+    :param pos: positive refers to the path of pulsars.pkl
+    :return: the data used to tran DBN
+    """
+    rfi_file = open(neg, 'rb')
+    pulsar_file = open(pos, 'rb')
+    rfi = pickle.load(rfi_file)
+    pulsar = pickle.load(pulsar_file)
+
+    rfi_list = list()
+    pulsar_list = list()
+
+    for i in range(len(rfi)):
+        tmp = rfi[i][:-1]
+        label = rfi[i][-1]    # rfi: 0, pulsar: 1
+        tmp.extend([0]*(6000 - len(tmp)))
+        tmp.appen(label)
+        rfi_list.append(tmp)
+
+    for i in range(len(pulsar)):
+        tmp = pulsar[i][:-1]
+        label = pulsar[i][-1]    # rfi: 0, pulsar: 1
+        tmp.extend([0]*(6000 - len(tmp)))
+        tmp.appen(label)
+        pulsar_list.append(tmp)
+
+    return rfi_list, pulsar_list
+
+
+def normalization(data):
+    """
+    normalize the data
+    :param data:
+    :return:
+    """
+    norm_data = list()
+    labels = list()
+    for i in range(len(data)):
+        labels.append(data[i][-1])
+        tmp = data[i][:-1]
+        max = np.max(tmp)
+        min = np.min(tmp)
+        for j in range(len(tmp)):
+            tmp[j] = (tmp[j] - min)/(max - min)
+        norm_data.append(tmp)
+
+    return norm_data, labels
 
 
 # read data from csv file
@@ -167,32 +223,80 @@ def rbm_train(data, layer):
             print("epoch: ", i+1, " batch: ", j+1, " err: ", err)
 
 
-def ext_fea(data, lables):
+def ext_fea(data, lables, path):
     n = len(hidden_size)
     num = np.shape(data)[0]
     for i in range(n):
         store = data
         data = list()
-        with open("F:\\PycharmProjects\\DBN-python\\Data\\HTRU_1_Combined_Lyon_Thornton_Features(30)_layer_%d.csv" %
-            (i + 1), "w", newline='') as file:
-            writer = csv.writer(file)
-            for j in range(num):
-                v = store[j]
-                h_mean = cal_pro(np.add(np.dot(v, np.transpose(W[i])), np.transpose(c[i])))
-                h_sample = gibbs(h_mean)
-                data.append(h_sample)
-                result = h_sample.tolist()[0]
-                result.append(lables[j])
-                writer.writerow(result)
 
+        file = open(path, "layer_%d.pkl", i)
+        for j in range(num):
+            v = store[j]
+            h_mean = cal_pro(np.add(np.dot(v, np.transpose(W[i])), np.transpose(c[i])))
+            h_sample = gibbs(h_mean)
+            result = h_sample.tolist()[0]
+            result.append(lables[j])
+            data.append(result)
+        pickle.dump(data, file, -1)
+
+        # with open("F:\\PycharmProjects\\DBN-python\\Data\\HTRU_1_Combined_Lyon_Thornton_Features(30)_layer_%d.csv" %
+        #     (i + 1), "w", newline='') as file:
+        #     writer = csv.writer(file)
+        #     for j in range(num):
+        #         v = store[j]
+        #         h_mean = cal_pro(np.add(np.dot(v, np.transpose(W[i])), np.transpose(c[i])))
+        #         h_sample = gibbs(h_mean)
+        #         data.append(h_sample)
+        #         result = h_sample.tolist()[0]
+        #         result.append(lables[j])
+        #         writer.writerow(result)
+
+
+def get_train_data(rfi, pulsar):
+    rd_rfi = list(range(len(rfi)))
+    np.random.shuffle(rd_rfi)
+    rd_pulsar = list(range(len(pulsar)))
+    np.random.shuffle(rd_pulsar)
+    train_data = list()
+    for i in range(1000):
+        train_data.append(pulsar[rd_pulsar[i]])
+
+    for i in range(10000):
+        train_data.append(rfi[rd_rfi[i]])
+    print("train_data: ", len(train_data))
+    return train_data
 
 if __name__ == "__main__":
-    path = "F:\\PycharmProjects\\DBN-python\\Data\\HTRU_1_Combined_Lyon_Thornton_Features (30)_10_Bin_Discretized.csv"
-    data, labels = input_data(path, True)
-    print("data shape: ", np.shape(data))
-    print("lable shape: ", np.shape(labels))
-    x, y = np.shape(data)
-    dbn_setup(ins=y)
-    dbn_train(data[:20000])
-    ext_fea(data, labels)
-    print(W[0][0])
+    # path = "F:\\PycharmProjects\\DBN-python\\Data\\HTRU_1_Combined_Lyon_Thornton_Features (30)_10_Bin_Discretized.csv"
+    # data, labels = input_data(path, True)
+    # print("data shape: ", np.shape(data))
+    # print("label shape: ", np.shape(labels))
+    # x, y = np.shape(data)
+    # print(x, y)
+    # dbn_setup(ins=y)
+    # dbn_train(data[:20000])
+    # ext_fea(data, labels)
+    # print(W[0][0])
+    neg = '/home/hezhaoying/SKA/Data/HTRU_1/save_attrs/RFI.pkl'
+    pos = '/home/hezhaoying/SKA/Data/HTRU_1/save_attrs/pulsars.pkl'
+    rfi, pulsars = read_attrs(neg, pos)
+    rfi_data, rfi_label = normalization(rfi)
+    print('rfi data: ', np.shape(rfi_data))
+    print("rfi_label: ", np.shape(rfi_label))
+    print('---------------------------------------')
+    pulsars_data, pulsars_label = normalization(pulsars)
+    print("pulsar_data: ", np.shape(pulsars_data))
+    print("pulsar_label: ", np.shape(pulsars_label))
+
+    for i in range(10):
+        train_data = get_train_data(rfi_data, pulsars_data)
+        x, y = np.shape(train_data)
+        print("%dth training:%d, %d " % (i, x, y))
+        dbn_setup(ins=y)
+        dbn_train(data=train_data)
+    ext_fea(rfi_data, rfi_label, '/home/hezhaoying/SKA/Data/HTRU_1/pulsar_feature_extraction/ ')
+    ext_fea(pulsars_data, pulsars_label, '/home/hezhaoying/SKA/Data/HTRU_1/pulsar_feature_extraction')
+
+
+
