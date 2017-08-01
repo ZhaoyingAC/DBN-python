@@ -4,7 +4,6 @@ import csv
 import numpy as np
 import pickle
 import os
-from datetime import datetime
 
 W = list()
 vW = list()  # W为对应的权值，vW用于更新权值
@@ -15,14 +14,13 @@ vb = list()  # b对应显层的偏置，vb用于更新偏置
 c = list()
 vc = list()  # c对应隐层的偏置，vc用于更新偏置
 
-hidden_size = [3000, 2000, 1000]
+hidden_size = [3000, 2000, 1000, 500]
+# hidden_size = [500]
 batch_size = 1000
 num_epochs = 2
 n_ins = 0
 momentum = 0
 lr = 0.1
-
-record = open('record.txt', 'a')
 
 
 def sigmoid(x):
@@ -227,25 +225,22 @@ def rbm_train(data, layer):
             print("epoch: ", i+1, " batch: ", j+1, " err: ", err)
 
 
-def ext_fea(data, labels, path, catalog):
+def ext_fea(data, lables, path):
+    n = len(hidden_size)
     num = np.shape(data)[0]
-    if not os.path.exists(path):
-        os.mkdir(path)
-    for i in range(len(hidden_size)):
-        n = hidden_size[i]
-        date_time = str(datetime.now().strftime('%Y/%m/%d_%H:%M:%S'))
-        print('%s: Saving %s %dth layer: %d' % (date_time, catalog, i+1, n))
-        record.write('%s: Saving %s %dth layer: %d\n' % (date_time, catalog, i+1, n))
+    for i in range(n):
+        print("Extracting features: ", hidden_size[i])
         store = data
         r = list()
-        tmp = os.path.join(path, '%s_%d_layer_%d.pkl' % (catalog, n, i+1))
-        file = open(tmp, 'wb')
+        size = hidden_size[i]
+        tmp_path = os.path.join(path, '%d_layer_%d.pkl' % (size, i+1))
+        file = open(tmp_path, 'wb')
         for j in range(num):
             v = store[j]
             h_mean = cal_pro(np.add(np.dot(v, np.transpose(W[i])), np.transpose(c[i])))
             h_sample = gibbs(h_mean)
             result = h_sample.tolist()[0]
-            result.append(labels[j])
+            result.append(lables[j])
             r.append(result)
         pickle.dump(r, file, -1)
 
@@ -271,7 +266,7 @@ def get_train_data(rfi, pulsar):
     for i in range(1000):
         train_data.append(pulsar[rd_pulsar[i]])
 
-    for i in range(1000):
+    for i in range(10000):
         train_data.append(rfi[rd_rfi[i]])
     print("train_data: ", len(train_data))
     return train_data
@@ -287,8 +282,8 @@ if __name__ == "__main__":
     # dbn_train(data[:20000])
     # ext_fea(data, labels)
     # print(W[0][0])
-    neg = '/home/ai/SKA/Data/HTRU_1/save_attrs/RFI.pkl'
-    pos = '/home/ai/SKA/Data/HTRU_1/save_attrs/pulsars.pkl'
+    neg = '/home/hezhaoying/SKA/Data/HTRU_1/save_attrs/RFI.pkl'
+    pos = '/home/hezhaoying/SKA/Data/HTRU_1/save_attrs/pulsars.pkl'
     rfi, pulsars = read_attrs(neg, pos)
     rfi_data, rfi_label = normalization(rfi)
     print('rfi data: ', np.shape(rfi_data))
@@ -298,16 +293,14 @@ if __name__ == "__main__":
     print("pulsar_data: ", np.shape(pulsars_data))
     print("pulsar_label: ", np.shape(pulsars_label))
 
-    for i in range(1):
+    for i in range(15):
         train_data = get_train_data(rfi_data, pulsars_data)
         x, y = np.shape(train_data)
-        print("%dth training:%d, %d " % (i, x, y))
-        date_time = str(datetime.now().strftime('%Y/%m/%d_%H:%M:%S'))
-        record.write("%s: %dth training:%d, %d \n" % (date_time, i, x, y))
+        print("%d th training:%d, %d " % (i+1, x, y))
         dbn_setup(ins=y)
         dbn_train(data=train_data)
-    ext_fea(rfi_data, rfi_label, '/home/hezhaoying/SKA/Data/HTRU_1/RFI_feature_extraction', 'RFI')
-    ext_fea(pulsars_data, pulsars_label, '/home/hezhaoying/SKA/Data/HTRU_1/pulsar_feature_extraction', 'pulsar')
+    ext_fea(rfi_data, rfi_label, '/home/hezhaoying/SKA/Data/HTRU_1/RFI_feature_extraction')
+    ext_fea(pulsars_data, pulsars_label, '/home/hezhaoying/SKA/Data/HTRU_1/pulsar_feature_extraction')
 
 
 

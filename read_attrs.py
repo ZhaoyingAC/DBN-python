@@ -28,14 +28,14 @@ def read_attrs(neg, pos):
         tmp = rfi[i][:-1]
         label = rfi[i][-1]    # rfi: 0, pulsar: 1
         tmp.extend([0]*(6000 - len(tmp)))
-        tmp.appen(label)
+        tmp.append(label)
         rfi_list.append(tmp)
 
     for i in range(pulsar):
         tmp = pulsar[i][:-1]
         label = pulsar[i][-1]    # rfi: 0, pulsar: 1
         tmp.extend([0]*(6000 - len(tmp)))
-        tmp.appen(label)
+        tmp.append(label)
         pulsar_list.append(tmp)
 
     return rfi_list, pulsar_list
