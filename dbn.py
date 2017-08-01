@@ -15,7 +15,7 @@ vb = list()  # b对应显层的偏置，vb用于更新偏置
 c = list()
 vc = list()  # c对应隐层的偏置，vc用于更新偏置
 
-hidden_size = [3000, 2000, 1000]
+hidden_size = [3000, 2000, 1000, 500]
 batch_size = 1000
 num_epochs = 2
 n_ins = 0
@@ -81,14 +81,14 @@ def read_attrs(neg, pos):
     for i in range(len(rfi)):
         tmp = rfi[i][:-1]
         label = rfi[i][-1]    # rfi: 0, pulsar: 1
-        tmp.extend([0]*(6000 - len(tmp)))
+        tmp.extend([0]*(5200 - len(tmp)))
         tmp.append(label)
         rfi_list.append(tmp)
 
     for i in range(len(pulsar)):
         tmp = pulsar[i][:-1]
         label = pulsar[i][-1]    # rfi: 0, pulsar: 1
-        tmp.extend([0]*(6000 - len(tmp)))
+        tmp.extend([0]*(5200 - len(tmp)))
         tmp.append(label)
         pulsar_list.append(tmp)
 
@@ -289,12 +289,16 @@ if __name__ == "__main__":
     # print(W[0][0])
     neg = '/home/ai/SKA/Data/HTRU_1/save_attrs/RFI.pkl'
     pos = '/home/ai/SKA/Data/HTRU_1/save_attrs/pulsars.pkl'
+    print("Reading RFI data")
     rfi, pulsars = read_attrs(neg, pos)
     rfi_data, rfi_label = normalization(rfi)
+    print("Finishing reading RFI data")
     print('rfi data: ', np.shape(rfi_data))
     print("rfi_label: ", np.shape(rfi_label))
     print('---------------------------------------')
+    print('Reading pulsars data')
     pulsars_data, pulsars_label = normalization(pulsars)
+    print('Finishing reading pulsar data')
     print("pulsar_data: ", np.shape(pulsars_data))
     print("pulsar_label: ", np.shape(pulsars_label))
 
